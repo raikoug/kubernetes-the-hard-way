@@ -99,10 +99,8 @@ In this section you will install the `kubectl`, the official Kubernetes client c
 Use the `chmod` command to make the `kubectl` binary executable and move it to the `/usr/local/bin/` directory:
 
 ```bash
-{
   chmod +x downloads/kubectl
   cp downloads/kubectl /usr/local/bin/
-}
 ```
 
 At this point `kubectl` is installed and can be verified by running the `kubectl` command:
