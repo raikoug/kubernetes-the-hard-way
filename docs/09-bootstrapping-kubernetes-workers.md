@@ -23,10 +23,10 @@ done
 ```bash
 for host in node-0 node-1; do
   scp \
-    downloads/runc.arm64 \
-    downloads/crictl-v1.28.0-linux-arm.tar.gz \
-    downloads/cni-plugins-linux-arm64-v1.3.0.tgz \
-    downloads/containerd-1.7.8-linux-arm64.tar.gz \
+    downloads/runc.amd64 \
+    downloads/crictl-v1.31.1-linux-amd64.tar.gz \
+    downloads/cni-plugins-linux-amd64-v1.6.0.tgz \
+    downloads/containerd-1.7.23-linux-amd64.tar.gz \
     downloads/kubectl \
     downloads/kubelet \
     downloads/kube-proxy \
