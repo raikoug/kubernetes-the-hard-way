@@ -95,10 +95,10 @@ Install the worker binaries:
 ```bash
 {
   mkdir -p containerd
-  tar -xvf crictl-v1.28.0-linux-arm.tar.gz
-  tar -xvf containerd-1.7.8-linux-arm64.tar.gz -C containerd
-  tar -xvf cni-plugins-linux-arm64-v1.3.0.tgz -C /opt/cni/bin/
-  mv runc.arm64 runc
+  tar -xvf crictl-v1.31.1-linux-amd64.tar.gz
+  tar -xvf containerd-1.7.23-linux-amd64.tar.gz -C containerd
+  tar -xvf cni-plugins-linux-amd64-v1.6.0.tgz -C /opt/cni/bin/
+  mv runc.amd64 runc
   chmod +x crictl kubectl kube-proxy kubelet runc 
   mv crictl kubectl kube-proxy kubelet runc /usr/local/bin/
   mv containerd/bin/* /bin/
