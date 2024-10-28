@@ -61,7 +61,7 @@ In this section you will generate and distribute an SSH keypair to the `server`,
 Generate a new SSH key:
 
 ```bash
-ssh-keygen
+ssh-keygen -t ed25519
 ```
 
 ```text
