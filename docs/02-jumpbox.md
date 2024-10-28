@@ -2,7 +2,7 @@
 
 In this lab you will set up one of the four machines to be a `jumpbox`. This machine will be used to run commands in this tutorial. While a dedicated machine is being used to ensure consistency, these commands can also be run from just about any machine including your personal workstation running macOS or Linux.
 
-Think of the `jumpbox` as the administration machine that you will use as a home base when setting up your Kubernetes cluster from the ground up. One thing we need to do before we get started is install a few command line utilities and clone the Kubernetes The Hard Way git repository, which contains some additional configuration files that will be used to configure various Kubernetes components throughout this tutorial. 
+Think of the `jumpbox` as the administration machine that you will use as a home base when setting up your Kubernetes cluster from the ground up. One thing we need to do before we get started is install a few command line utilities. 
 
 Log in to the `jumpbox`:
 
@@ -12,21 +12,47 @@ ssh root@jumpbox
 
 All commands will be run as the `root` user. This is being done for the sake of convenience, and will help reduce the number of commands required to set everything up.
 
-### Install Command Line Utilities
+### Install requirements
 
 Now that you are logged into the `jumpbox` machine as the `root` user, you will install the command line utilities that will be used to preform various tasks throughout the tutorial. 
 
 ```bash
-apt-get -y install wget curl vim openssl git
+apt -y install wget curl vim openssl git apt-transport-https ca-certificates gnupg cri-tools containerd
 ```
 
-### Sync GitHub Repository
+### Kebernetes Source List
+Source: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux
+
+```bash
+# Download the key and add it to the keyring
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+# Add kubernetes repository
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
+chmod 644 /etc/apt/sources.list.d/kubernetes.list
+# Update and install
+apt update
+```
+
+#### Install the necessary Packages
+
+```bash
+apt install -y kubectl kubelet
+```
+
+Test `kubectl`
+```bash
+kubectl version --client
+```
+
+### Other Tools
+#### Sync GitHub Repository
 
 Now it's time to download a copy of this tutorial which contains the configuration files and templates that will be used build your Kubernetes cluster from the ground up. Clone the Kubernetes The Hard Way git repository using the `git` command:
 
 ```bash
 git clone --depth 1 \
-  https://github.com/kelseyhightower/kubernetes-the-hard-way.git
+  https://github.com/raikoug/kubernetes-the-hard-way
 ```
 
 Change into the `kubernetes-the-hard-way` directory:
@@ -44,6 +70,7 @@ pwd
 ```text
 /root/kubernetes-the-hard-way
 ```
+
 
 ### Download Binaries
 
@@ -90,28 +117,6 @@ total 584M
 -rw-r--r-- 1 root  46M Oct 18 07:34 kubectl
 -rw-r--r-- 1 root 101M Oct 18 07:34 kubelet
 -rw-r--r-- 1 root 9.6M Aug 10 18:57 runc.arm64
-```
-
-### Install kubectl
-
-In this section you will install the `kubectl`, the official Kubernetes client command line tool, on the `jumpbox` machine. `kubectl will be used to interact with the Kubernetes control once your cluster is provisioned later in this tutorial.
-
-Use the `chmod` command to make the `kubectl` binary executable and move it to the `/usr/local/bin/` directory:
-
-```bash
-  chmod +x downloads/kubectl
-  cp downloads/kubectl /usr/local/bin/
-```
-
-At this point `kubectl` is installed and can be verified by running the `kubectl` command:
-
-```bash
-kubectl version --client
-```
-
-```text
-Client Version: v1.28.3
-Kustomize Version: v5.0.4-0.20230601165947-6ce0bf390ce3
 ```
 
 At this point the `jumpbox` has been set up with all the command line tools and utilities necessary to complete the labs in this tutorial.
