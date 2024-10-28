@@ -73,11 +73,57 @@ Your identification has been saved in /root/.ssh/id_rsa
 Your public key has been saved in /root/.ssh/id_rsa.pub
 ```
 
+Generate the jumpbox `/etc/hosts` entries and a temporary file `/tmp/hosts`
+assuming jumpbox is `172.16.100.100`:
+
+```bash
+echo "" >> /etc/hosts
+echo "# Kubernetes The Hard Way" >> /etc/hosts
+echo "172.16.100.100 jumpbox.internal jumpbox" > /tmp/hosts
+while read IP FQDN HOST SUBNET; do
+  echo "${IP} ${FQDN} ${HOST}" >> /etc/hosts
+  echo "${IP} ${FQDN} ${HOST}" >> /tmp/hosts
+done < machines.txt
+```
+
+Now `/etc/hosts` should looks like this (with you own IP addresses):
+
+```text
+127.0.0.1	localhost
+172.16.0.100	jumpbox.internal	jumpbox
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+# Kubernetes The Hard Way
+172.16.100.101 server.internal server
+172.16.100.102 node-0.internal node-0
+172.16.100.103 node-1.internal node-1
+```
+
+Test reachability with port 22 (SSH) to each machine:
+
+```bash
+while read IP FQDN HOST SUBNET; do 
+  nc -zv ${FQDN} 22
+done < machines.txt
+```
+
+Result should be:
+
+```text
+server.internal [172.16.100.101] 22 (ssh) open
+node-0.internal [172.16.100.102] 22 (ssh) open
+node-1.internal [172.16.100.103] 22 (ssh) open
+```
+
 Copy the SSH public key to each machine:
 
 ```bash
 while read IP FQDN HOST SUBNET; do 
-  ssh-copy-id root@${IP}
+  ssh-copy-id root@${FQDN}
 done < machines.txt
 ```
 
@@ -85,14 +131,14 @@ Once each key is added, verify SSH public key access is working:
 
 ```bash
 while read IP FQDN HOST SUBNET; do 
-  ssh -n root@${IP} uname -o -m
+  ssh -n root@${FQDN} uname -o -m
 done < machines.txt
 ```
 
 ```text
-aarch64 GNU/Linux
-aarch64 GNU/Linux
-aarch64 GNU/Linux
+x86_64 GNU/Linux
+x86_64 GNU/Linux
+x86_64 GNU/Linux
 ```
 
 ## Hostnames
@@ -101,13 +147,18 @@ In this section you will assign hostnames to the `server`, `node-0`, and `node-1
 
 To configure the hostname for each machine, run the following commands on the `jumpbox`.
 
-Set the hostname on each machine listed in the `machines.txt` file:
+Set the hostname on each machine listed in the `machines.txt` file and copy the hosts:
 
 ```bash
 while read IP FQDN HOST SUBNET; do 
-    CMD="sed -i 's/^127.0.1.1.*/127.0.1.1\t${FQDN} ${HOST}/' /etc/hosts"
-    ssh -n root@${IP} "$CMD"
-    ssh -n root@${IP} hostnamectl hostname ${HOST}
+    # Command to add the hostname to /etc/hosts
+    CMD0="echo ''>> /etc/hosts; echo '# Kubernetes The Hard Way' >> /etc/hosts; echo '127.0.1.1 ${FQDN} ${HOST}' >> /etc/hosts"
+    ssh -n root@${FQDN} "$CMD0"
+    # Copy the temporary hosts file to each machine
+    scp /tmp/hosts root@${FQDN}:/tmp/hosts
+    ssh -n root@${FQDN} "cat /tmp/hosts >> /etc/hosts"
+    # Set the hostname
+    ssh -n root@${FQDN} hostnamectl hostname ${HOST}
 done < machines.txt
 ```
 
@@ -115,111 +166,14 @@ Verify the hostname is set on each machine:
 
 ```bash
 while read IP FQDN HOST SUBNET; do
-  ssh -n root@${IP} hostname --fqdn
+  ssh -n root@${FQDN} hostname --fqdn
 done < machines.txt
 ```
 
 ```text
-server.kubernetes.local
-node-0.kubernetes.local
-node-1.kubernetes.local
+server.internal
+node-0.internal
+node-1.internal
 ```
-
-## DNS
-
-In this section you will generate a DNS `hosts` file which will be appended to `jumpbox` local `/etc/hosts` file and to the `/etc/hosts` file of all three machines used for this tutorial. This will allow each machine to be reachable using a hostname such as `server`, `node-0`, or `node-1`.
-
-Create a new `hosts` file and add a header to identify the machines being added:
-
-```bash
-echo "" > hosts
-echo "# Kubernetes The Hard Way" >> hosts
-```
-
-Generate a DNS entry for each machine in the `machines.txt` file and append it to the `hosts` file:
-
-```bash
-while read IP FQDN HOST SUBNET; do 
-    ENTRY="${IP} ${FQDN} ${HOST}"
-    echo $ENTRY >> hosts
-done < machines.txt
-```
-
-Review the DNS entries in the `hosts` file:
-
-```bash
-cat hosts
-```
-
-```text
-
-# Kubernetes The Hard Way
-XXX.XXX.XXX.XXX server.kubernetes.local server
-XXX.XXX.XXX.XXX node-0.kubernetes.local node-0
-XXX.XXX.XXX.XXX node-1.kubernetes.local node-1
-```
-
-## Adding DNS Entries To A Local Machine
-
-In this section you will append the DNS entries from the `hosts` file to the local `/etc/hosts` file on your `jumpbox` machine.
-
-Append the DNS entries from `hosts` to `/etc/hosts`:
-
-```bash
-cat hosts >> /etc/hosts
-```
-
-Verify that the `/etc/hosts` file has been updated:
-
-```bash
-cat /etc/hosts
-```
-
-```text
-127.0.0.1       localhost
-127.0.1.1       jumpbox
-
-# The following lines are desirable for IPv6 capable hosts
-::1     localhost ip6-localhost ip6-loopback
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
-
-
-
-# Kubernetes The Hard Way
-XXX.XXX.XXX.XXX server.kubernetes.local server
-XXX.XXX.XXX.XXX node-0.kubernetes.local node-0
-XXX.XXX.XXX.XXX node-1.kubernetes.local node-1
-```
-
-At this point you should be able to SSH to each machine listed in the `machines.txt` file using a hostname.
-
-```bash
-for host in server node-0 node-1
-   do ssh root@${host} uname -o -m -n
-done
-```
-
-```text
-server aarch64 GNU/Linux
-node-0 aarch64 GNU/Linux
-node-1 aarch64 GNU/Linux
-```
-
-## Adding DNS Entries To The Remote Machines
-
-In this section you will append the DNS entries from `hosts` to `/etc/hosts` on each machine listed in the `machines.txt` text file.
-
-Copy the `hosts` file to each machine and append the contents to `/etc/hosts`:
-
-```bash
-while read IP FQDN HOST SUBNET; do
-  scp hosts root@${HOST}:~/
-  ssh -n \
-    root@${HOST} "cat hosts >> /etc/hosts"
-done < machines.txt
-```
-
-At this point hostnames can be used when connecting to machines from your `jumpbox` machine, or any of the three machines in the Kubernetes cluster. Instead of using IP addresess you can now connect to machines using a hostname such as `server`, `node-0`, or `node-1`.
 
 Next: [Provisioning a CA and Generating TLS Certificates](04-certificate-authority.md)
