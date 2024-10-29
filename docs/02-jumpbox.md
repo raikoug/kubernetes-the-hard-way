@@ -105,18 +105,15 @@ ls -loh downloads
 ```
 
 ```text
-total 584M
--rw-r--r-- 1 root  41M May  9 13:35 cni-plugins-linux-arm64-v1.3.0.tgz
--rw-r--r-- 1 root  34M Oct 26 15:21 containerd-1.7.8-linux-arm64.tar.gz
--rw-r--r-- 1 root  22M Aug 14 00:19 crictl-v1.28.0-linux-arm.tar.gz
--rw-r--r-- 1 root  15M Jul 11 02:30 etcd-v3.4.27-linux-arm64.tar.gz
--rw-r--r-- 1 root 111M Oct 18 07:34 kube-apiserver
--rw-r--r-- 1 root 107M Oct 18 07:34 kube-controller-manager
--rw-r--r-- 1 root  51M Oct 18 07:34 kube-proxy
--rw-r--r-- 1 root  52M Oct 18 07:34 kube-scheduler
--rw-r--r-- 1 root  46M Oct 18 07:34 kubectl
--rw-r--r-- 1 root 101M Oct 18 07:34 kubelet
--rw-r--r-- 1 root 9.6M Aug 10 18:57 runc.arm64
+total 367M
+-rw-r--r-- 1 root 51M Oct 15 11:37 cni-plugins-linux-amd64-v1.6.0.tgz
+-rw-r--r-- 1 root 17M Sep 11 20:28 etcd-v3.4.34-linux-amd64.tar.gz
+-rw-r--r-- 1 root 87M Oct 23 06:41 kube-apiserver
+-rw-r--r-- 1 root 81M Oct 23 06:41 kube-controller-manager
+-rw-r--r-- 1 root 62M Oct 23 06:41 kube-proxy
+-rw-r--r-- 1 root 61M Oct 23 06:41 kube-scheduler
+-rw-r--r-- 1 root 11M Oct 22 00:31 runc.amd64
+
 ```
 
 At this point the `jumpbox` has been set up with all the command line tools and utilities necessary to complete the labs in this tutorial.
